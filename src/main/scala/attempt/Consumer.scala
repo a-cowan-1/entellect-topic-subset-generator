@@ -1,0 +1,5 @@
+package attempt
+
+class Consumer {
+
+}

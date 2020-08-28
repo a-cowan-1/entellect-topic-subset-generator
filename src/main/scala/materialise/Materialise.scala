@@ -36,7 +36,7 @@ class Main {
     builder
   }
 
-  def runFibGenerater(producer: Producer[String, String]) = {
+  def runFibGenerator(producer: Producer[String, String]) = {
     @tailrec def fib(x: BigInt, xm1: BigInt, countdown: Int, func: (BigInt, Int) => Unit): Unit = {
       func(x, countdown)
       countdown match {
@@ -75,7 +75,7 @@ class Main {
     try {
       transformerStream.start()
       Thread.sleep(2000)
-      runFibGenerater(fibProducer)
+      runFibGenerator(fibProducer)
       println("Now waiting1")
       println(transformerStream.kafkaStreams.isEmpty)
       transformerStream.kafkaStreams.foreach(readMaterializedStore(_))

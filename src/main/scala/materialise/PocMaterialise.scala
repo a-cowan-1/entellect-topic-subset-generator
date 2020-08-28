@@ -29,15 +29,15 @@ class PocMaterialise {
       }
     }
 
-    fib(1, 0, 49, (x: BigInt, count: Int) => {
+    fib(1, 0, 100, (x: BigInt, count: Int) => {
       producer.produce(KafkaRecord("fib", 0, 0, count.toString, x.toString()))
-      Thread.sleep(200)
+      Thread.sleep(2)
     })
   }
 
   val props: Properties = {
     val p = new Properties()
-    p.put(StreamsConfig.APPLICATION_ID_CONFIG, "kafka-first-fun")
+    p.put(StreamsConfig.APPLICATION_ID_CONFIG, "poc-materialise")
     p.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "http://oxygen-dev-01.nonprod.entellect.com/")
     p.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String.getClass)
     p.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String.getClass)
@@ -47,11 +47,14 @@ class PocMaterialise {
   def topologyPlan(): StreamsBuilder = {
     import org.apache.kafka.streams.scala.Serdes._
     val builder= new StreamsBuilder
+    val fibMat: KTable[String, String] = builder.table("pp1", materialized)
 
-    val fibMat: KTable[String, String] = builder.table("fib", materialized)
-    fibMat.toStream.to("fibMat")
     builder
   }
+
+
+
+
   def readMaterializedStore(kafkaStreams: KafkaStreams): Unit = {
     val keyValueStore: ReadOnlyKeyValueStore[String, String] = kafkaStreams.store(storeName, QueryableStoreTypes.keyValueStore[String, String]())
     val timezero = System.currentTimeMillis()
@@ -74,21 +77,16 @@ class PocMaterialise {
 
 
   def run() = {
-    val fibProducer = Producer[String, String]()
     val rawConsumer = Consumer[String, String]("grp1", "776")
-    val consumer2 = Consumer[String,String]("grp2","777")
-    val consumer3 = Consumer[String,String]("grp3","778")
 
     val transformerStream = Stream(topologyPlan())
 
-    rawConsumer.subscribe("fib", x=>println(s"raw= $x"))
-    consumer2.subscribe("uncounted", x=>println(s"uncounted = $x"))
-    consumer3.subscribe("fibMat", x=>println(s"fibMat = $x"))
+    rawConsumer.subscribe("pp1", x=>println(s"raw= $x"))
     transformerStream.kafkaStreams.foreach(_.cleanUp())
     try {
       transformerStream.start()
       Thread.sleep(2000)
-      runFibGenerator(fibProducer)
+//      runFibGenerator(fibProducer)
       println("Now waiting1")
       transformerStream.kafkaStreams.foreach(readMaterializedStore(_))
 
@@ -105,6 +103,7 @@ class PocMaterialise {
   }
 
 }
+
 object PocMaterialise {
   def main(args: Array[String]): Unit = {
     val main = new PocMaterialise()

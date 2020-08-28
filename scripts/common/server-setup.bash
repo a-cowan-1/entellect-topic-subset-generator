@@ -2,6 +2,9 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
+export JAVA_HOME=`/usr/libexec/java_home -v 1.8`
+export KAFKA_HOME=~/Documents/kafka_2_12
+
 echo "Dir = $DIR"
 
 mkdir -p $DIR/logs
@@ -39,5 +42,5 @@ echo "setting up consumer groups"
 bin/kafka-consumer-groups.sh --bootstrap-server localhost:9092 --all-groups --reset-offsets --to-latest --all-topics  --execute
 
 echo "+Application reset"
-bin/kafka-streams-application-reset.sh --application-id "my-first-streams-application"
+bin/kafka-streams-application-reset.sh --application-id ""
 
