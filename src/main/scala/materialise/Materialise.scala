@@ -1,7 +1,8 @@
 package main.scala.materialise
 
 
-import main.scala.scalad.{Consumer, KafkaRecord, Producer}
+import attempt.{KafkaRecord, Producer}
+import main.scala.scalad.Consumer
 import main.scala.streamed.Stream
 import org.apache.kafka.streams.scala.StreamsBuilder
 import org.apache.kafka.streams.scala.kstream._

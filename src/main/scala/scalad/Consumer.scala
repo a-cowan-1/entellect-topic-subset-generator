@@ -6,6 +6,8 @@ import java.util
 import java.util.{Calendar, Properties}
 import java.util.concurrent.Executors
 
+import attempt.KafkaRecord
+
 import scala.collection.JavaConverters._
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.errors.WakeupException
@@ -22,11 +24,7 @@ import scala.util.{Failure, Success}
 //import org.apache.kafka.common.serialization.IntegerDeserializer
 
 
-case class KafkaRecord[K, V](topic: String, partition: Int, offset: Long, key: K, value: V, recordCounter: Int = -1, timestamp: Long = -1) {
-//  val timestamp = Calendar.getInstance.getTime
-  val timeFormat = new SimpleDateFormat("HH:mm:ss")
-  override def toString: String = s"(${timeFormat.format(timestamp)})->(topic:$topic), (partition:$partition), (offset:$offset), (key: $key), (value: $value), (counter: $recordCounter)"
-}
+
 
 class Consumer[K: TypeTag, V: TypeTag] {
   implicit val ec = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)

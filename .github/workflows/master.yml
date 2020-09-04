@@ -1,0 +1,77 @@
+name: Master CI
+on:
+  push:
+    branches:
+      - master
+
+env:
+  GIT_STRATEGY: clone
+  GIT_REPOSITORY: entellect-topic-subset-generator
+  DOCKER_REGISTRY: 290244732740.dkr.ecr.eu-west-1.amazonaws.com
+  DOCKER_REPOSITORY: entellect-topic-subset-generator
+  SERVICE_INSTANCES: 4
+  JAVA_OPTS: -Dfile.encoding=UTF-8
+  CACHE_BRANCH: master
+  CO_BRANCH: master
+
+jobs:
+  compile_test:
+    if: "!startsWith(github.event.head_commit.message, '[skip ci]')"
+    runs-on: [self-hosted, entellect]
+    steps:
+      - name: Checkout Repository
+        run: |
+          rm -rf $GIT_REPOSITORY
+          git clone --single-branch --branch master https://x-token-auth:$AUTHORIZATION_TOKEN@github.com/elsevier-health/$GIT_REPOSITORY $GIT_REPOSITORY
+      - name: Compile Test
+        run: |
+          cd $GIT_REPOSITORY
+          sbt -mem 4000 clean compile
+
+#  set_versions:
+#    runs-on: [self-hosted, entellect]
+#    needs: compile_test
+#    steps:
+#      - name: Checkout Repository
+#        run: |
+#          rm -rf $GIT_REPOSITORY
+#          git clone --single-branch --branch master https://x-token-auth:$AUTHORIZATION_TOKEN@github.com/elsevier-health/$GIT_REPOSITORY $GIT_REPOSITORY
+#      - name: Set versions
+#        run: |
+#          cd $GIT_REPOSITORY
+#          [[ `cat version.sbt` =~ \"(.*)\" ]]
+#          BUILD_VERSION=${BASH_REMATCH[1]}
+#          export LANG=en_GB.UTF-8
+#          git config --global user.email "svc-scielsentellect@elsevier.com"
+#          git config --global user.name "svc-scielsentellect1"
+#          curl -X DELETE -u svc-scielsentellect1:$AUTHORIZATION_TOKEN "https://api.github.com/repos/elsevier-health/$GIT_REPOSITORY/branches/master/protection/required_pull_request_reviews" -H "Accept:application/vnd.github.luke-cage-preview+json"
+#          sbt "release with-defaults"
+#          curl -v -X PATCH -u svc-scielsentellect1:$AUTHORIZATION_TOKEN "https://api.github.com/repos/elsevier-health/$GIT_REPOSITORY/branches/master/protection/required_pull_request_reviews" -H "Accept:application/vnd.github.luke-cage-preview+json" --data '{"dismiss_stale_reviews": true, "require_code_owner_reviews": false, "required_approving_review_count": 1 }'
+#          curl -X POST -u svc-scielsentellect1:$AUTHORIZATION_TOKEN "https://api.github.com/repos/elsevier-health/$GIT_REPOSITORY/branches/master/protection/enforce_admins"
+
+
+  docker:
+    runs-on: [self-hosted, entellect]
+    needs:
+    steps:
+      - name: Checkout Repository
+        run: |
+          rm -rf $GIT_REPOSITORY
+          git clone --single-branch --branch master https://x-token-auth:$AUTHORIZATION_TOKEN@github.com/elsevier-health/$GIT_REPOSITORY $GIT_REPOSITORY
+      - name: Docker
+        run: |
+          cd $GIT_REPOSITORY
+          [[ `cat version.sbt` =~ \"(.*)\" ]]
+          BUILD_VERSION=${BASH_REMATCH[1]}
+          export LANG=en_GB.UTF-8
+          aws sts assume-role-with-web-identity --role-arn $AWS_ROLE_ARN --role-session-name git-session --web-identity-token file://$AWS_WEB_IDENTITY_TOKEN_FILE --duration-seconds 1000 > /tmp/git-cred.txt
+          export AWS_ACCESS_KEY_ID="$(cat /tmp/git-cred.txt | jq -r ".Credentials.AccessKeyId")"
+          export AWS_SECRET_ACCESS_KEY="$(cat /tmp/git-cred.txt | jq -r ".Credentials.SecretAccessKey")"
+          export AWS_SESSION_TOKEN="$(cat /tmp/git-cred.txt | jq -r ".Credentials.SessionToken")"
+          rm -rf /tmp/git-cred.txt
+          docker info
+          sbt clean compile docker
+          $(aws ecr get-login --no-include-email --registry-ids 290244732740 --region eu-west-1)
+          docker push $DOCKER_REGISTRY/$DOCKER_REPOSITORY:$BUILD_VERSION
+          docker push $DOCKER_REGISTRY/$DOCKER_REPOSITORY:latest
+          docker rmi $DOCKER_REGISTRY/$DOCKER_REPOSITORY:$BUILD_VERSION $DOCKER_REGISTRY/$DOCKER_REPOSITORY:latest

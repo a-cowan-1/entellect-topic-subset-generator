@@ -1,6 +1,7 @@
 package main.scala.streamed
 
-import main.scala.scalad.{Consumer, KafkaRecord, Producer}
+import attempt.{KafkaRecord, Producer}
+import main.scala.scalad.Consumer
 import org.apache.kafka.streams.scala.StreamsBuilder
 import org.apache.kafka.streams.scala.kstream.KStream
 import org.apache.kafka.streams.scala.ImplicitConversions._

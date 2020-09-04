@@ -1,6 +1,7 @@
-package main.scala.scalad
+package attempt
 
 import java.util.Properties
+
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
 
 import scala.collection.JavaConverters._

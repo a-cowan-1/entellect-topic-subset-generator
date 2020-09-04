@@ -1,5 +1,0 @@
-package attempt
-
-class Consumer {
-
-}

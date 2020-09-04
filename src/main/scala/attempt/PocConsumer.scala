@@ -1,12 +1,10 @@
-package materialise
+package attempt
 
 import java.text.SimpleDateFormat
 import java.time.Duration
-import java.util.Properties
 import java.util
-import java.util.{Calendar, Properties}
+import java.util.Properties
 
-import main.scala.scalad.KafkaRecord
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.errors.WakeupException
 

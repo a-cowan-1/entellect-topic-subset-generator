@@ -1,5 +1,7 @@
 package main.scala.scalad
 
+import attempt.{KafkaRecord,Producer}
+
 object Main {
 
   def main(args: Array[String]): Unit = {

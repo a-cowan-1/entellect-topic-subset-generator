@@ -3,13 +3,13 @@ import org.apache.kafka.streams.scala.{ByteArrayKeyValueStore, Serdes, StreamsBu
 import org.apache.kafka.streams.scala.kstream.{KGroupedStream, KStream, KTable}
 import main.scala.streamed.Stream
 import org.apache.kafka.streams.scala.kstream._
-import main.scala.scalad.{Consumer, KafkaRecord, Producer}
+import main.scala.scalad.Consumer
 import org.apache.kafka.streams.{KafkaStreams, KeyValue, StreamsConfig}
 import org.apache.kafka.streams.kstream.Materialized
 import org.apache.kafka.streams.scala.ImplicitConversions._
 import org.apache.kafka.streams.state.{KeyValueIterator, QueryableStoreTypes, ReadOnlyKeyValueStore, Stores}
 import java.util.Properties
-
+import attempt._
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 class RunTestConsumer {
